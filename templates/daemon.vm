@@ -1,0 +1,61 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides: $w_name
+# Required-Start: $start_dependencies
+# Required-Stop: $stop_dependencies
+# Default-Start:  $w_start_levels
+# Default-Stop: $w_stop_levels
+# Short-Description: yajsw wrapper for Watchdog
+# Description: $w_description
+### END INIT INFO
+# config: $w_conf_file
+# pidfile: $w_wrap_pid_file
+#-----------------------------------------------------------------------------
+# YAJSW sh script template.  Suitable for starting and stopping
+#  wrapped daemon on POSIX platforms.
+#-----------------------------------------------------------------------------
+
+startit() {
+if [ -f $w_wrap_pid_file ]
+then
+	echo $w_name already started.;
+	return;
+fi
+    echo "Starting $w_name ..."
+  	eval "$w_start_cmd &"
+	echo $e_mark > $w_wrap_pid_file
+	echo Watchdog\'s PID saved into $w_wrap_pid_file
+}
+
+stopit(){
+if [ -f $w_wrap_pid_file ]
+then
+	read watchdogWrapPid < $w_wrap_pid_file
+	kill $watchdogWrapPid
+	rm -f $w_wrap_pid_file
+else
+	echo $w_name is not running.
+fi
+}
+
+case "$1" in
+    'start')
+        startit
+        ;;
+
+    'stop')
+        stopit
+        ;;
+
+    'restart')
+        stopit
+        startit
+        ;;
+
+    *)
+        echo "Usage: $0 { start | stop | restart }"
+        exit 1
+        ;;
+esac
+
+exit $?
