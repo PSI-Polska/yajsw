@@ -1547,41 +1547,26 @@ public class WrapperManagerImpl implements WrapperManager, Constants, WrapperMan
 		{
 
 			public void run()
-			{
-				try
-				{
-					File file;
-					if (fileName == null || fileName.length() < 1)
-						file = new File(".");
-					else
-						file = new File(fileName);
-					File parent;
-					if (file.isDirectory())
-					{
-						parent = file;
-						file = new File(parent, "dump" + "_" + new SimpleDateFormat("yyyy_MM_dd-hh_mm").format(new Date()) + ".hprof");
-					}
-					else
-						parent = file.getParentFile();
-
-					if (!parent.exists())
-						parent.mkdirs();
+ {
+				try {
+					File file = new File(fileName
+							+ "_"
+							+ new SimpleDateFormat("yyyy_MM_dd-hh_mm")
+									.format(new Date()) + ".apps");
 
 					// com.sun.management.HotSpotDiagnosticMXBean mb =
 					// sun.management.ManagementFactory.getDiagnosticMXBean();
-					com.sun.management.HotSpotDiagnosticMXBean mb = ManagementFactory.newPlatformMXBeanProxy(ManagementFactory
-							.getPlatformMBeanServer(), HOTSPOT_BEAN_NAME, HotSpotDiagnosticMXBean.class);
-					File dumpFile = new File(parent, file.getName());
-					mb.dumpHeap(dumpFile.getAbsolutePath(), true);
-					System.out.println("yajsw: dumpHeap done " + dumpFile.getAbsolutePath());
-				}
-				catch (Throwable ex)
-				{
-					ex.printStackTrace();
-				}
-				finally
-				{
+					com.sun.management.HotSpotDiagnosticMXBean mb;
+					mb = ManagementFactory.newPlatformMXBeanProxy(
+							ManagementFactory.getPlatformMBeanServer(),
+							HOTSPOT_BEAN_NAME, HotSpotDiagnosticMXBean.class);
+					mb.dumpHeap(file.getAbsolutePath(), true);
+					System.out.println("yajsw: dumpHeap done "
+							+ file.getAbsolutePath());
 					_dumpingHeap = false;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
 
