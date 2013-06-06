@@ -350,18 +350,18 @@ public class MyFileHandler extends StreamHandler {
      *
      */
     public MyFileHandler(String pattern, int limit, int count, boolean append)
-					throws IOException, SecurityException {
-	if (limit < 0 || count < 1 || pattern.length() < 1) {
-	    throw new IllegalArgumentException();
+			throws IOException, SecurityException {
+		if (limit < 0 || count < 1 || pattern.length() < 1) {
+			throw new IllegalArgumentException();
+		}
+		// checkAccess();
+		configure();
+		this.pattern = pattern;
+		this.limit = limit;
+		this.count = count;
+		this.append = append;
+		openFiles();
 	}
-	//checkAccess();
-	configure();
-	this.pattern = pattern;
-	this.limit = limit;
-	this.count = count;
-	this.append = append;
-	openFiles();
-    }
 
     public MyFileHandler(String pattern, int limit, int count, boolean append, PatternFormatter fileFormatter, Level logLevel, String encoding) throws SecurityException, IOException
 	{
@@ -394,11 +394,12 @@ public class MyFileHandler extends StreamHandler {
 	int unique = -1;
 	for (;;) {
 	    unique++;
-	    if (unique > MAX_LOCKS) {
-		throw new IOException("Couldn't get lock for " + pattern);
-	    }
+			if (unique > MAX_LOCKS) {
+				throw new IOException("Couldn't get lock for " + pattern);
+			}
 	    // Generate a lock file name from the "unique" int.
 	    lockFileName = generate(pattern, 0, unique, count).toString() + ".lck";
+	    new File(lockFileName).getParentFile().mkdirs();
 	    // Now try to lock that filename.
 	    // Because some systems (e.g. Solaris) can only do file locks
 	    // between processes (and not within a process), we first check
