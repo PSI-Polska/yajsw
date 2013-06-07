@@ -1,6 +1,7 @@
 package org.rzo.yajsw.wrapper;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -25,7 +26,14 @@ public class WrappedRuntimeProcess extends AbstractWrappedProcess
 		}
 		// TODO check if c exists - search in PATH
 		command.add(c);
+		
+		List keys = new ArrayList();
 		for (Iterator it = _config.getKeys("wrapper.app.parameter"); it.hasNext();)
+		{
+			keys.add(it.next());
+		}
+		Collections.sort(keys, new AlphanumComparator());
+		for (Iterator it = keys.iterator(); it.hasNext();)
 		{
 			String p = _config.getString((String)it.next());
 			if (p != null)
