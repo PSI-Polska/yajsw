@@ -92,7 +92,7 @@ public class FileUtils
 			for (Iterator it = paths.iterator(); it.hasNext();)
 			{
 				String pathStr = (String) it.next();
-				if (pathStr.endsWith(":"))
+				if (pathStr.endsWith(":") || pathStr.isEmpty())
 					pathStr += "/";
 				File path = new File(pathStr);
 				if ((!path.isDirectory()) || (!path.exists()) || (!(path.isAbsolute())))
