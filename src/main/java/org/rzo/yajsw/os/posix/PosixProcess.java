@@ -35,6 +35,13 @@ import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 import com.sun.jna.ptr.IntByReference;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+
+import org.apache.commons.lang.exception.ExceptionUtils;
+
+import com.sun.jna.Native;
+
 public class PosixProcess extends AbstractProcess
 {
 	protected int[]					_inPipe			= new int[2];
@@ -522,6 +529,11 @@ public class PosixProcess extends AbstractProcess
 		 * int fstat (int filedes, struct stat *buf)
 		 */
 		int fstat(int filedes, Pointer buf);
+        
+        int F_SETFD = 2;
+        int FD_CLOEXEC = 1;
+        
+        int fcntl(int fd, int command, long flags);
 
 	}// CLibrary
 
@@ -729,6 +741,71 @@ public class PosixProcess extends AbstractProcess
 
 		String forkLogName = "forkLog" + System.currentTimeMillis() + ".log";
 
+        try {
+            short bufferSize = 1024;
+            Memory buffer = new Memory(bufferSize);
+            File descriptorDir = new File( "/proc/" + CLibrary.INSTANCE.getpid() + "/fd" );
+            File[] files = descriptorDir.listFiles();
+            for( File file : files )
+            {
+                buffer.clear();
+                short readlinkResultSize =
+                    CLibrary.INSTANCE.readlink( file.getAbsolutePath(), buffer, bufferSize );
+                if( readlinkResultSize > 0 )
+                {
+                    byte[] readlinkResultBytes = buffer.getByteArray( 0, readlinkResultSize );
+                    String readlinkResult = new String( readlinkResultBytes );
+                    log( "readlink " + file.getAbsolutePath() + " = " + readlinkResult );
+                    if( readlinkResult.startsWith( "socket" ) )
+                    {
+                        log( "socket descriptor: " + file.getName() );
+                        int fd = Integer.parseInt( file.getName() );
+                        int command = CLibrary.F_SETFD;
+                        int flag = CLibrary.FD_CLOEXEC;
+                        int fcntlResult = CLibrary.INSTANCE.fcntl( fd, command, flag );
+                        log( "fcntl result: " + fcntlResult );
+                        if( fcntlResult < 0 )
+                        {
+                            int lastError = Native.getLastError();
+                            System.out.println( "Last error: " + CLibrary.INSTANCE.strerror( lastError ) );
+                        }
+                    }
+                }
+                else
+                {
+                    log( "Failed to readlink on " + file.getAbsolutePath() );
+                }
+                
+                /*
+                java.lang.Process process = Runtime.getRuntime().exec( "readlink " + file.getAbsolutePath() );
+                BufferedReader reader = new BufferedReader( new InputStreamReader( process.getInputStream() ) );
+                for( String line = null; (line = reader.readLine()) != null; )
+                {
+                    log( line );
+                    if( line.startsWith( "socket" ) )
+                    {
+                        log( "socket descriptor: " + file.getName() );
+                        int fd = Integer.parseInt( file.getName() );
+                        int command = CLibrary.F_SETFD;
+                        int flag = CLibrary.FD_CLOEXEC;
+                        int result = CLibrary.INSTANCE.fcntl( fd, command, flag );
+                        log( "fcntl result: " + result );
+                        if( result < 0 )
+                        {
+                            int lastError = Native.getLastError();
+                            log( "Last error: " + CLibrary.INSTANCE.strerror( lastError ) );
+                        }
+                    }
+                }
+                reader.close();
+                */
+            }
+        }
+        catch( Exception e )
+        {
+            log(ExceptionUtils.getStackTrace(e));
+        }
+        
 		// fork a child process
 		if ((pid = CLibrary.INSTANCE.fork()) == 0)
 		{
@@ -794,6 +871,18 @@ public class PosixProcess extends AbstractProcess
 
 			try
 			{
+        /*try
+        {
+            Class forName = Class.forName( "de.psi.pjf.wdog.server.comm.jmx.WatchdogJmxServer" );
+            Field f = forName.getField( "INSTANCE" );
+            Object object = f.get( null );
+            forName.getMethod( "stop" ).invoke( object );
+        }
+        catch( Exception e )
+        {
+            log(ExceptionUtils.getStackTrace(e));
+        }*/
+            
 				int res;
 
 				// disconect from parent
