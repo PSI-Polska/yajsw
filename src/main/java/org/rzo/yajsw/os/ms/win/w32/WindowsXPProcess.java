@@ -2321,6 +2321,9 @@ public class WindowsXPProcess extends AbstractProcess
 			log("cannot kill process with negative pid " + _pid);
 			return false;
 		}
+        
+        final List<HWND> currentProcessWindowHandles = new ArrayList<HWND>();
+        
 		// first try polite kill
 		// e.g. post WM_CLOSE to all windows whose PID
 		// matches our process.
@@ -2341,6 +2344,7 @@ public class WindowsXPProcess extends AbstractProcess
 					// null, null) ;
 					// MyUser32.INSTANCE.PostMessageA(wnd, MyUser32.WM_DESTROY,
 					// null, null) ;
+                    currentProcessWindowHandles.add(wnd);
 				}
 				// continue with next window
 				return true;
@@ -2358,6 +2362,12 @@ public class WindowsXPProcess extends AbstractProcess
 			Thread.currentThread().interrupt();
 		}
 
+        if (isRunning() && currentProcessWindowHandles.size() == 0)
+        {
+            log("there are no windows within this process -> hard kill");
+            return kill(code);
+        }
+        
 		// Wait for process to terminate
 
 		if (timeout > 0)
