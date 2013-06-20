@@ -1552,7 +1552,7 @@ public class WrapperManagerImpl implements WrapperManager, Constants, WrapperMan
 					File file = new File(fileName
 							+ "_"
 							+ new SimpleDateFormat("yyyy_MM_dd-hh_mm")
-									.format(new Date()) + ".apps");
+									.format(new Date()) + ".hprof");
 
 					// com.sun.management.HotSpotDiagnosticMXBean mb =
 					// sun.management.ManagementFactory.getDiagnosticMXBean();
