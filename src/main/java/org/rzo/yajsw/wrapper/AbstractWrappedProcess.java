@@ -1,4 +1,4 @@
-﻿package org.rzo.yajsw.wrapper;
+package org.rzo.yajsw.wrapper;
 
 import java.awt.Color;
 import java.io.BufferedReader;
@@ -1497,7 +1497,7 @@ public abstract class AbstractWrappedProcess implements WrappedProcess, Constant
 		File f = null;
 		if (!r.isAbsolute())
 		{
-			String wDir = _config.getString("wrapper.working.dir", ".");
+			String wDir = ".";
 			f = new File(wDir, result);
 		}
 		else
