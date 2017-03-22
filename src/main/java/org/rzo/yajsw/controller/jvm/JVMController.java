@@ -619,11 +619,37 @@ public class JVMController extends AbstractController
 
 	public void processStarted()
 	{
+		int waitCounter = 0;
+		// it may, but should not happen, that
+		// this method is called twice although this should not happen
+		// we log this and after some time if we do not return from
+		// osProcess.waitFor(); we restart the application.
+		// TODO
 		while (_waitingForProcessTermination)
 			try
 			{
-				getLog().info("should not happen: waiting for termination thread");
+		
+				if (waitCounter < 100)
+				{
+					getLog().info(
+							"should not happen: waiting for termination thread");
+				}
+
 				Thread.sleep(200);
+				waitCounter++;
+
+				if (waitCounter == 1000)
+				{
+					executor.execute(new Runnable()
+					{
+						public void run()
+						{
+							_wrappedProcess.restart();
+						}
+					});
+				}
+
+				return;
 			}
 			catch (InterruptedException e)
 			{
